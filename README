@@ -1,0 +1,16 @@
+OSS-WMS
+Project Description
+Appliance FIFO Manual-Entry WMS is a web-based inventory and warehouse management system for appliance stockrooms and warehouses that track serialized units (such as refrigerators, air conditioners, and washing machines) using manual entry instead of barcode scanners. It helps staff record incoming serial numbers, track unit statuses and floor zones, follow First-In, First-Out (FIFO) dispatch suggestions with documented override reasons when skipping older stock, monitor aging inventory, and look up serial history for warranty and audit needs.
+Core Features & Users
+·	Core Capabilities: Appliance model catalog (brand, category, model number, specs, warranty period, reorder threshold), manual serial-numbered receiving (Stock In), unit status tracking (In Stock, Reserved / Staged, Dispatched, Returned / Inspection, Damaged / Quarantine), zone transfers and dispatches (Stock Out / Move), FIFO dispatch guidance with out-of-FIFO override reason codes, aging stock alerts, and full serial audit trails
+·	Roles: Receiving & Warehouse Staff, After-Sales / Warranty Coordinators, Warehouse Supervisors / Managers, and Admins.
+# Front-End Plan
+·	Tech Stack & Layout: Blazor front-end in C# with shared validation/DTO models, searchable dropdowns, filterable inventory/zone tables, and role-based UI controls that restrict destructive or supervisory actions
+·	Error-Resistant Serial Entry: Auto-uppercases and trims typed serial numbers, displays a live serial count (e.g., "Entered 8 of 10 serials"), flags duplicate serials within the same batch before submitting, and supports Enter-key navigation for fast manual entry.
+·	Condition & Zone Visibility: Uses clear status and zone badges to separate sellable stock from staged, returned, or damaged/quarantined appliances.
+·	FIFO Picker & Alerts: Displays available In Stock serials sorted oldest-first by initial receipt date with arrival age/days-in-stock badges, prompts for an override reason if a newer unit is chosen while older stock is available, and provides an aging-stock filter.
+# Back-End Plan
+·	Server & Database Architecture: ASP.NET Core REST API backed by a relational database (PostgreSQL) with core tables for appliance_models, warehouse_zones, appliance_units (keeping received_at immutable from initial receipt and indexed for FIFO queries), and append-only unit_movements (recording followed_fifo and override_reason on dispatches).
+·	Serial & Quantity Validation: Enforces uniqueness on serial numbers per model/brand at the database/API level and verifies that submitted serial counts match the declared movement quantity.
+·	State-Machine & FIFO Rule Enforcement: Validates unit status transitions (such as preventing re-dispatch of Damaged or already Dispatched units without proper inspection/return flow), orders FIFO candidates by received_at ASC, id ASC, and rejects out-of-FIFO dispatches missing an override_reason.
+·	Atomic Transactions & Reporting: Wraps receiving, transfers, status changes, and dispatches in atomic database transactions alongside audit log writes, and exposes endpoints for stock/aging summaries, FIFO override audits, and complete serial history lookups.
